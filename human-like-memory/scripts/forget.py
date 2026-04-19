@@ -2,7 +2,7 @@ import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from datetime import datetime
-from tools import Tools
+from tools import Tools # type: ignore
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEMORY_FILE = os.path.join(BASE_DIR, "data", "memory.json")
@@ -83,45 +83,37 @@ RELATION_WORDS = {"妈妈", "爸爸", "家人", "老婆", "老公", "女朋友",
 CASUAL_WORDS = {"随便", "好像", "大概", "可能吧", "也没什么", "就那样", "无所谓"}
 
 def analyze_importance(text, emotion):
-    # 基础分5
     score = 5
 
-    # 情绪强度高 → 加分
     if emotion.get("intensity", 5) >= 8:
         score += 2
     elif emotion.get("intensity", 5) >= 6:
         score += 1
 
-    # 情绪类型 → 加分
     high_impact_emotions = {"愤怒", "悲伤", "恐惧", "兴奋", "焦虑"}
     if emotion.get("type") in high_impact_emotions:
         score += 1
 
     text_lower = text
 
-    # 情感词
     for word in EMOTIONAL_WORDS:
         if word in text_lower:
             score += 2
             break
 
-    # 切身利益词
     for word in BENEFIT_WORDS:
         if word in text_lower:
             score += 1
             break
 
-    # 关系词
     for word in RELATION_WORDS:
         if word in text_lower:
             score += 1
             break
 
-    # 描述详细（字数多）
     if len(text) > 50:
         score += 1
 
-    # 随口一说
     for word in CASUAL_WORDS:
         if word in text_lower:
             score -= 1
@@ -189,6 +181,6 @@ def process_forgetting():
 def bump_importance(key):
     memory = tools.read_json(MEMORY_FILE, default={})
     if key in memory:
-        current = memory[key].get("重要性", 5)
-        memory[key]["重要性"] = min(current + 1, 10)
+        memory[key]["重要性"] = min(memory[key].get("重要性", 5) + 1, 10)
+        memory[key]["last_accessed"] = datetime.now().isoformat()
         tools.write_json(MEMORY_FILE, memory)

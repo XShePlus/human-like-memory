@@ -39,12 +39,24 @@ def update_persona(traits):
             if trait in persona[category]:
                 old = persona[category][trait]
                 old["来源次数"] = old.get("来源次数", 0) + 1
-                old["置信度"] = old["来源次数"] / total
             else:
                 persona[category][trait] = {
                     "置信度": conf if isinstance(conf, float) else 0.5,
                     "来源次数": 1
                 }
+
+    # 重新计算所有置信度
+    total = sum(
+        sum(t["来源次数"] for t in cat.values())
+        for cat in persona.values()
+        if isinstance(cat, dict)
+    )
+    total = max(total, 1)
+
+    for category in persona.values():
+        if isinstance(category, dict):
+            for trait in category.values():
+                trait["置信度"] = trait.get("来源次数", 1) / total
 
     # 写回画像
     tools.write_json(PERSONA_FILE, persona)
