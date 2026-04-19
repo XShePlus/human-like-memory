@@ -1,13 +1,18 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from .tools import Tools # type: ignore
+from tools import Tools # type: ignore
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEMORY_FILE = os.path.join(BASE_DIR, "data", "memory.json")
 PERSONA_FILE = os.path.join(BASE_DIR, "data", "persona.json")
 
 tools = Tools()
+
+def read_persona():
+    return tools.read_json(PERSONA_FILE, default={
+        "性格": {}, "爱好": {}, "习惯": {}, "价值观": {}
+    })
 
 def store_event(key, event_data):
     # 读取已有记忆
